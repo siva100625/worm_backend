@@ -34,8 +34,8 @@ MODEL_PATH = os.path.join(settings.BASE_DIR, "api", "ml_models", "best_worm_mode
 if not os.path.exists(MODEL_PATH):
     raise FileNotFoundError(f"Model not found at {MODEL_PATH}")
 
-from tensorflow.keras.applications import MobileNetV2
-from tensorflow.keras import models, layers
+from tensorflow import MobileNetV2
+from tensorflow import models, layers
 
 base = MobileNetV2(weights='imagenet', include_top=False, input_shape=(IMG_HEIGHT, IMG_WIDTH, 3))
 base.trainable = False
@@ -57,6 +57,28 @@ print("✅ Model successfully rebuilt and loaded!")
 # Prediction Endpoint
 # =============================
 from django.core.mail import send_mail
+def save_uploaded_file_to_temp(uploaded_file):
+    temp_dir = tempfile.gettempdir()
+    temp_path = os.path.join(temp_dir, uploaded_file.name)
+    with open(temp_path, 'wb+') as f:
+        for chunk in uploaded_file.chunks():
+            f.write(chunk)
+    return temp_path
+
+
+def save_bytes_to_temp(data_bytes):
+    temp_fd, temp_path = tempfile.mkstemp(suffix=".jpg")
+    with os.fdopen(temp_fd, 'wb') as f:
+        f.write(data_bytes)
+    return temp_path
+
+
+def preprocess_image_file(file_path):
+    img = Image.open(file_path).convert("RGB")
+    img = img.resize((IMG_WIDTH, IMG_HEIGHT))
+    img_array = np.array(img) / 255.0
+    img_batch = np.expand_dims(img_array, axis=0)
+    return img_batch
 
 @csrf_exempt
 def predict_image(request):
@@ -102,6 +124,8 @@ def predict_image(request):
         predictions_collection.insert_one(record)
 
         # === Send Email if Flatworm Detected ===
+        db = client["user_database"]
+        users_collection = db["users"]
         if predicted_class == "flatworm":
             print("jo")
             try:
