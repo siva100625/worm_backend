@@ -54,9 +54,11 @@ MIDDLEWARE = [
 ]
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
+    "https://wormdetector-q75m.vercel.app",
     "https://wormdetector-an64.vercel.app",
     "https://wormdetector-cokc.vercel.app",  
     "https://iotbackend-h5go.onrender.com",
+    "https://hopebackend.onrender.com",
 ]
 CORS_ALLOW_HEADERS = ["*"]
 CORS_ALLOW_CREDENTIALS = True
