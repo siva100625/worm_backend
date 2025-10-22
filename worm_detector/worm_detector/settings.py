@@ -53,7 +53,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173","https://wormdetector-eupi.vercel.app",
+    "http://localhost:5173","https://wormdetector-eupi.vercel.app","https://iotbackend-h5go.onrender.com",
 ]
 ROOT_URLCONF = 'worm_detector.urls'
 
