@@ -34,8 +34,8 @@ MODEL_PATH = os.path.join(settings.BASE_DIR, "api", "ml_models", "best_worm_mode
 if not os.path.exists(MODEL_PATH):
     raise FileNotFoundError(f"Model not found at {MODEL_PATH}")
 
-from tensorflow import MobileNetV2
-from tensorflow import models, layers
+from tensorflow.keras.applications import MobileNetV2
+from tensorflow.keras import models, layers
 
 base = MobileNetV2(weights='imagenet', include_top=False, input_shape=(IMG_HEIGHT, IMG_WIDTH, 3))
 base.trainable = False
