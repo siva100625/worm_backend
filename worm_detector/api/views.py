@@ -17,18 +17,17 @@ from rest_framework.response import Response
 from rest_framework import status
 from keras.models import load_model
 from keras.layers import RandomFlip
-# =============================
+
 # Configuration
-# =============================
+
 IMG_HEIGHT = 128
 IMG_WIDTH = 128
 CLASS_NAMES = ["earthworm", "flatworm"]
 client=MongoClient("mongodb+srv://testUser:TSX8uNGoZc2AuteR@cluster0.7zpc1wb.mongodb.net/") 
 db = client["worm_detector_db"] 
 predictions_collection = db["predictions"]
-# =============================
-# Load Model (.h5 safe loading)
-# =============================
+
+# Load Model
 MODEL_PATH = os.path.join(settings.BASE_DIR, "api", "ml_models", "best_worm_model.h5")
 
 if not os.path.exists(MODEL_PATH):
@@ -50,12 +49,10 @@ model = models.Sequential([
 
 # Load weights safely
 model.load_weights(MODEL_PATH)
-print("✅ Model successfully rebuilt and loaded!")
+print("Model successfully rebuilt and loaded!")
 
 
-# =============================
 # Prediction Endpoint
-# =============================
 from django.core.mail import send_mail
 def save_uploaded_file_to_temp(uploaded_file):
     temp_dir = tempfile.gettempdir()
@@ -87,10 +84,7 @@ def predict_image(request):
         if request.method != "POST":
             return JsonResponse({"error": "Only POST allowed"}, status=405)
 
-        # Get username from request (optional, from frontend)
         username = request.POST.get("username", None)
-
-        # Receive image
         if request.FILES.get("image"):
             temp_path = save_uploaded_file_to_temp(request.FILES["image"])
         elif request.content_type and request.content_type.startswith("image/"):
@@ -98,10 +92,8 @@ def predict_image(request):
         else:
             return JsonResponse({"error": "No image provided"}, status=400)
 
-        # Preprocess
         img_batch = preprocess_image_file(temp_path)
 
-        # Predict (Binary)
         pred = model.predict(img_batch)[0][0]
         if pred > 0.5:
             predicted_class = "flatworm"
@@ -110,11 +102,9 @@ def predict_image(request):
             predicted_class = "earthworm"
             confidence = float(1 - pred)
 
-        # Timestamp (IST)
         ist_time = datetime.now(timezone.utc) + timedelta(hours=5, minutes=30)
         ist_timestamp = ist_time.strftime("%Y-%m-%d %H:%M:%S")
 
-        # Save to MongoDB
         record = {
             "predicted_class": predicted_class,
             "confidence": confidence,
@@ -123,7 +113,6 @@ def predict_image(request):
         }
         predictions_collection.insert_one(record)
 
-        # === Send Email if Flatworm Detected ===
         db = client["user_database"]
         users_collection = db["users"]
         if predicted_class == "flatworm":
@@ -158,13 +147,13 @@ def predict_image(request):
                     )
 
                     if sent_count == 1:
-                        print(f"✅ Email successfully sent to {user_email}")
+                        print(f"Email successfully sent to {user_email}")
                     else:
-                        print(f"❌ send_mail returned {sent_count}")
+                        print(f"send_mail returned {sent_count}")
                 else:
-                    print(f"❌ User has no email or email field missing")
+                    print(f"User has no email or email field missing")
             except Exception as mail_err:
-                print(f"🔥 Email sending exception: {mail_err}")
+                print(f"Email sending exception: {mail_err}")
 
         return JsonResponse({
             "predicted_class": predicted_class,
@@ -173,7 +162,7 @@ def predict_image(request):
         })
 
     except Exception as e:
-        print("🔥 Prediction Error Traceback:")
+        print("Prediction Error Traceback:")
         print(traceback.format_exc())
         return JsonResponse({"error": str(e)}, status=500)
 
@@ -183,10 +172,9 @@ def predict_image(request):
                 os.remove(temp_path)
             except Exception:
                 pass
-
-# =============================
+                
 # Authentication Endpoints
-# =============================
+
 db = client["user_database"]
 users_collection = db["users"]
 @api_view(['POST'])
@@ -233,12 +221,10 @@ def login(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def logout(request):
-    """Simple logout endpoint — clears client-side session."""
     return Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
 
-# =============================
+
 # All Predictions Endpoint
-# =============================
 @csrf_exempt
 def all_predictions(request):
     try:
