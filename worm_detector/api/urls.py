@@ -3,8 +3,8 @@ from .views import predict_image, signup, login,all_predictions,logout
 
 urlpatterns = [
     path("predict/", predict_image,name="predict_image"),
-    path("signup/", signup),
-    path("login/", login),
-    path("logout/", logout),
+    path("signup/", signup,name="signup),
+    path("login/", login,name="login"),
+    path("logout/", logout,name="logout"),
     path("all/", all_predictions, name="all_predictions"),
 ]
