@@ -23,9 +23,9 @@ from keras.layers import RandomFlip
 IMG_HEIGHT = 128
 IMG_WIDTH = 128
 CLASS_NAMES = ["earthworm", "flatworm"]
-client=MongoClient("mongodb+srv://testUser:TSX8uNGoZc2AuteR@cluster0.7zpc1wb.mongodb.net/") 
-db = client["worm_detector_db"] 
-predictions_collection = db["predictions"]
+client=MongoClient("") #url
+db = client[""] #database name
+predictions_collection = db[""]#collection name
 
 # Load Model
 MODEL_PATH = os.path.join(settings.BASE_DIR, "api", "ml_models", "best_worm_model.h5")
@@ -116,19 +116,19 @@ def predict_image(request):
         db = client["user_database"]
         users_collection = db["users"]
         if predicted_class == "flatworm":
-            print("jo")
+            print("Flatworm Detected")
             try:
                 user = users_collection.find_one({"username": username})
                 if user:
-                    print(f"🔹 Found user in DB: {user}")
+                    print(f"Found user in DB: {user}")
                 else:
-                    print(f"❌ No user found with username: {username}")
+                    print(f"No user found with username: {username}")
 
                 if user and "email" in user and user["email"]:
                     user_email = user["email"]
-                    print(f"🔹 Sending email to: {user_email}")
+                    print(f"Sending email to: {user_email}")
 
-                    subject = "⚠️ Flatworm Detected!"
+                    subject = "Flatworm Detected!"
                     message = (
                         f"Hello {username},\n\n"
                         f"Our system detected a *flatworm* in your submitted image.\n\n"
@@ -175,8 +175,8 @@ def predict_image(request):
                 
 # Authentication Endpoints
 
-db = client["user_database"]
-users_collection = db["users"]
+db = client[""]#userdb
+users_collection = db[""]#collection name
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def signup(request):
@@ -233,6 +233,6 @@ def all_predictions(request):
             return JsonResponse({"message": "No predictions yet."}, status=404)
         return JsonResponse({"predictions": data}, safe=False)
     except Exception as e:
-        print("🔥 Fetch Predictions Error:")
+        print("Fetch Predictions Error:")
         print(traceback.format_exc())
         return JsonResponse({"error": str(e)}, status=500)
